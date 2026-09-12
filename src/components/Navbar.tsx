@@ -1,8 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingBag, Search, Clock, MapPin, X, User, LogOut, KeyRound, Gift, ChevronDown, Timer, Lock } from 'lucide-react';
+import {
+  ShoppingBag,
+  Search,
+  Clock,
+  MapPin,
+  X,
+  User,
+  LogOut,
+  KeyRound,
+  Gift,
+  ChevronDown,
+  Timer,
+  Lock,
+  Sun,
+  Moon,
+} from 'lucide-react';
 import { getStoreStatusText, STORE_CONFIG } from '../config/storeConfig';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { JMartLogo } from './JMartLogo';
 
 interface NavbarProps {
   searchQuery: string;
@@ -24,6 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     activeReservation,
   } = useCart();
   const { currentCustomer, isAuthenticated, openLoginModal, openChangePasswordModal, logout } = useAuth();
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -53,16 +71,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('keydown', focusSearch);
   }, []);
 
-  const getTierColor = (tier: string) => {
+  const getTierBadge = (tier: string) => {
     switch (tier) {
       case 'Platinum':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
+        return 'bg-[var(--accent-soft)] text-[var(--accent-hi)] border-[var(--accent-line)]';
       case 'Gold':
-        return 'bg-amber-100 text-amber-800 border-amber-300';
+        return 'bg-[var(--warn-soft)] text-[var(--warn)] border-[var(--warn-line)]';
       case 'Silver':
-        return 'bg-slate-200 text-slate-800 border-slate-300';
+        return 'bg-[var(--sub)] text-[var(--ink)] border-[var(--border2)]';
       default:
-        return 'bg-amber-50 text-amber-900 border-amber-200';
+        return 'bg-[var(--rule)] text-[var(--ink2)] border-[var(--border)]';
     }
   };
 
@@ -71,32 +89,63 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isStoreOpen = storeStatusText.startsWith('Open');
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
-      {/* Top micro-bar: store hours and location */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 bg-[var(--panel)]/95 backdrop-blur-md border-b border-[var(--border)] transition-colors">
+      {/* Top micro-bar: store status, hours, location, and theme toggle */}
+      <div className="bg-[var(--sub)] text-[var(--ink2)] text-xs py-1.5 px-4 sm:px-6 border-b border-[var(--rule)]">
         <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
-          <div className="flex items-center gap-4">
-            <span className={`flex items-center gap-1.5 font-medium ${isStoreOpen ? 'text-emerald-400' : 'text-amber-300'}`}>
+          <div className="flex items-center gap-3">
+            <span
+              className={`inline-flex items-center gap-1.5 font-medium ${
+                isStoreOpen ? 'text-[var(--ok)]' : 'text-[var(--warn)]'
+              }`}
+            >
               <span className="relative flex h-2 w-2">
-                <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${isStoreOpen ? 'animate-ping bg-emerald-400' : 'bg-amber-300'}`}></span>
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${isStoreOpen ? 'bg-emerald-500' : 'bg-amber-400'}`}></span>
+                <span
+                  className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    isStoreOpen ? 'animate-ping bg-[var(--ok)]' : 'bg-[var(--warn)]'
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex rounded-full h-2 w-2 ${
+                    isStoreOpen ? 'bg-[var(--ok)]' : 'bg-[var(--warn)]'
+                  }`}
+                />
               </span>
-              {storeStatusText}
+              <span>{storeStatusText}</span>
             </span>
-            <span className="hidden md:inline-block text-slate-400">•</span>
-            <span className="hidden md:flex items-center gap-1 text-slate-300">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              Weekdays: {STORE_CONFIG.openingHours.weekdays}
+            <span className="hidden md:inline-block text-[var(--ink4)]">·</span>
+            <span className="hidden md:flex items-center gap-1 text-[var(--ink3)]">
+              <Clock className="w-3.5 h-3.5 text-[var(--ink4)]" />
+              <span>Weekdays:</span>
+              <span className="font-mono text-[11px] tabular-nums text-[var(--ink2)]">
+                {STORE_CONFIG.openingHours.weekdays}
+              </span>
             </span>
           </div>
 
           <div className="flex items-center gap-3 ml-auto">
             <button
               onClick={onOpenStoreInfo}
-              className="flex items-center gap-1 hover:text-white transition-colors text-xs font-medium cursor-pointer"
+              className="flex items-center gap-1 text-[var(--ink2)] hover:text-[var(--ink)] transition-colors text-xs font-medium cursor-pointer"
             >
-              <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Store Location & Contact</span>
+              <MapPin className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span>Ramapuram, Chennai</span>
+            </button>
+            <span className="text-[var(--ink4)]">·</span>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+              className="inline-flex items-center gap-1.5 text-xs text-[var(--ink2)] hover:text-[var(--ink)] transition-colors cursor-pointer select-none"
+            >
+              {resolvedTheme === 'dark' ? (
+                <Sun className="w-3.5 h-3.5 text-[var(--warn)]" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-[var(--ink3)]" />
+              )}
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider">
+                {resolvedTheme === 'dark' ? 'Light' : 'Dark'}
+              </span>
             </button>
           </div>
         </div>
@@ -104,111 +153,104 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main navigation bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-6">
-          {/* Logo & Brand */}
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-6">
+          {/* Logo & Brand using official J MART Logo Component */}
           <a
             href="/"
-            className="flex items-center gap-2.5 sm:gap-3 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-xl"
+            className="flex items-center gap-2.5 sm:gap-3 shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-xl"
             aria-label={`${STORE_CONFIG.name} Home`}
           >
-            <div className="w-11 h-11 rounded-xl bg-white border border-slate-200/90 p-1 flex items-center justify-center shadow-xs group-hover:border-emerald-300 group-hover:shadow-sm transition-all">
-              <img
-                src="/logo-mark.png"
-                alt={`${STORE_CONFIG.name} Logo`}
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-xl font-black tracking-tight text-slate-900 group-hover:text-emerald-900 transition-colors">
-                  {STORE_CONFIG.name}
-                </h1>
-                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wide">
-                  Live Stock
-                </span>
-              </div>
-              <p className="hidden sm:block text-xs text-slate-500 font-medium">
-                {STORE_CONFIG.tagline}
-              </p>
-            </div>
+            <JMartLogo variant="full" subtitle="SUPERMARKET & RETAIL" />
+            <span className="hidden sm:inline-block font-mono text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 rounded border border-[var(--border2)] bg-[var(--sub)] text-[var(--ink3)]">
+              Live Stock
+            </span>
           </a>
 
-          {/* Search bar */}
+          {/* Search bar with 44px instrument panel styling and keyboard shortcut hint */}
           <div className="order-3 basis-full max-w-none sm:order-none sm:flex-1 sm:max-w-lg mx-0 sm:mx-2">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ink3)] pointer-events-none" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search products by name, brand, or SKU..."
+                placeholder="Search products by name, brand, or SKU... (Press '/' to search)"
                 aria-label="Search products by name, brand, or SKU"
-                className="w-full pl-10 pr-9 py-2 text-sm bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-transparent focus:border-emerald-500 rounded-xl outline-hidden transition-all text-slate-800 placeholder-slate-400"
+                className="w-full h-11 pl-10 pr-12 py-2 text-sm bg-[var(--sub)] hover:bg-[var(--rule2)]/50 focus:bg-[var(--panel)] border border-[var(--border2)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/30 rounded-xl outline-none transition-all text-[var(--ink)] placeholder:text-[var(--ink4)]"
               />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => onSearchChange('')}
-                  aria-label="Clear product search"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-md hover:bg-slate-200 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => onSearchChange('')}
+                    aria-label="Clear product search"
+                    className="text-[var(--ink3)] hover:text-[var(--ink)] p-1 rounded-md hover:bg-[var(--rule)] transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <kbd className="hidden sm:inline-block font-mono text-[10px] font-bold text-[var(--ink4)] border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--panel)]">
+                    /
+                  </kbd>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Action buttons: Auth / Loyalty and Cart */}
+          {/* Action buttons: Loyalty Auth and Cart / Reservation */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Customer Login / Member Profile */}
             {isAuthenticated && currentCustomer ? (
               <div className="relative" ref={menuRef}>
                 <button
+                  type="button"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200/80 text-slate-800 px-3 py-2 rounded-xl text-xs font-bold transition-all border border-slate-200 cursor-pointer"
+                  className="h-11 flex items-center gap-2 bg-[var(--sub)] hover:bg-[var(--rule2)] text-[var(--ink)] px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border border-[var(--border2)] cursor-pointer"
                 >
-                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-[11px]">
+                  <div className="w-6 h-6 rounded-full bg-[var(--accent)] text-[var(--primary-foreground)] flex items-center justify-center font-mono font-bold text-xs">
                     {currentCustomer.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="hidden md:inline max-w-[100px] truncate">
+                  <span className="hidden md:inline max-w-[100px] truncate text-[var(--ink)] font-medium">
                     {currentCustomer.name}
                   </span>
                   <span
-                    className={`hidden sm:inline text-[10px] font-bold px-1.5 py-0.2 rounded-md border ${getTierColor(
+                    className={`hidden sm:inline font-mono text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${getTierBadge(
                       currentCustomer.tier
                     )}`}
                   >
                     {currentCustomer.tier}
                   </span>
                   {unusedCouponsCount > 0 && (
-                    <span className="bg-amber-500 text-slate-950 text-[10px] font-black px-1.5 rounded-full">
+                    <span className="font-mono bg-[var(--warn-soft)] text-[var(--warn-hi)] border border-[var(--warn-line)] text-[10px] font-bold px-1.5 rounded">
                       {unusedCouponsCount}
                     </span>
                   )}
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[var(--ink3)]" />
                 </button>
 
                 {/* Dropdown Profile Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="p-2 border-b border-slate-100">
-                      <div className="font-extrabold text-sm text-slate-900">
+                  <div className="absolute right-0 mt-2 w-64 bg-[var(--panel)] rounded-xl border border-[var(--border)] p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="p-2 border-b border-[var(--rule)]">
+                      <div className="font-bold text-sm text-[var(--ink)]">
                         {currentCustomer.name}
                       </div>
-                      <div className="text-[11px] text-slate-500">{currentCustomer.phone}</div>
-                      <div className="mt-2 flex items-center justify-between text-xs bg-slate-50 p-2 rounded-xl">
-                        <span className="text-slate-600 font-medium">Points Balance:</span>
-                        <span className="font-black text-emerald-700">
+                      <div className="font-mono text-[11px] text-[var(--ink3)]">
+                        {currentCustomer.phone}
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-xs bg-[var(--sub)] p-2 rounded-lg border border-[var(--border2)]">
+                        <span className="text-[var(--ink3)] font-medium">Points:</span>
+                        <span className="font-mono font-bold text-[var(--accent)] tabular-nums">
                           {currentCustomer.loyaltyPoints} pts
                         </span>
                       </div>
                     </div>
 
                     {/* Available Coupons */}
-                    <div className="py-2 border-b border-slate-100">
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1 flex items-center gap-1">
-                        <Gift className="w-3 h-3 text-emerald-600" />
+                    <div className="py-2 border-b border-[var(--rule)]">
+                      <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)] px-2 mb-1 flex items-center gap-1">
+                        <Gift className="w-3 h-3 text-[var(--accent)]" />
                         Available Coupons:
                       </div>
                       {(() => {
@@ -218,15 +260,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                             {activeCoupons.map((c) => (
                               <div
                                 key={c.code}
-                                className="p-2 rounded-lg text-xs flex items-center justify-between bg-emerald-50 text-emerald-900 font-semibold border border-emerald-200"
+                                className="p-2 rounded-md text-xs flex items-center justify-between bg-[var(--ok-soft)] text-[var(--ok)] font-mono border border-[var(--ok-line)]"
                               >
-                                <span>{c.code}</span>
-                                <span>₹{c.discountAmount} off</span>
+                                <span className="font-bold">{c.code}</span>
+                                <span>₹{c.discountAmount} OFF</span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="text-[11px] text-slate-400 px-2">No coupons available</div>
+                          <div className="text-[11px] text-[var(--ink3)] px-2">No coupons available</div>
                         );
                       })()}
                     </div>
@@ -238,10 +280,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                           setIsUserMenuOpen(false);
                           openChangePasswordModal();
                         }}
-                        className="w-full text-left text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 p-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
+                        className="w-full text-left text-xs font-semibold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--sub)] p-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                       >
-                        <KeyRound className="w-3.5 h-3.5 text-slate-500" />
-                        Change Password
+                        <KeyRound className="w-3.5 h-3.5 text-[var(--ink3)]" />
+                        <span>Change Password</span>
                       </button>
 
                       <button
@@ -249,10 +291,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                           setIsUserMenuOpen(false);
                           logout();
                         }}
-                        className="w-full text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 p-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
+                        className="w-full text-left text-xs font-semibold text-[var(--danger)] hover:bg-[var(--danger-soft)] p-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        Sign Out
+                        <span>Sign Out</span>
                       </button>
                     </div>
                   </div>
@@ -261,36 +303,36 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <button
                 onClick={() => openLoginModal()}
-                className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+                className="h-11 flex items-center gap-1.5 bg-[var(--sub)] hover:bg-[var(--rule2)] text-[var(--ink)] border border-[var(--border2)] px-3.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
               >
-                <User className="w-3.5 h-3.5" />
+                <User className="w-3.5 h-3.5 text-[var(--accent)]" />
                 <span>Loyalty Login</span>
               </button>
             )}
 
-            {/* Cart / WhatsApp Reservation Bag */}
+            {/* Cart / Reservation Bag Trigger */}
             {STORE_CONFIG.features.enableWhatsAppOrder && (
               <button
                 onClick={toggleCart}
-                className={`relative flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all shadow-md cursor-pointer ${
+                className={`h-11 relative flex items-center gap-2 px-3 sm:px-3.5 rounded-xl font-semibold text-xs sm:text-sm transition-all cursor-pointer border ${
                   isAuthenticated && activeReservation
-                    ? 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-emerald-700/30 ring-2 ring-emerald-400/50'
-                    : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-emerald-600/20'
+                    ? 'bg-[var(--accent-soft)] hover:bg-[var(--accent-soft2)] text-[var(--ink)] border-[var(--accent-line)]'
+                    : 'bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--primary-foreground)] border-[var(--accent)]'
                 }`}
-                title={isAuthenticated && activeReservation ? 'Active Reservation - View OTP' : 'Reservation Bag'}
+                title={isAuthenticated && activeReservation ? 'Active Hold - View OTP' : 'Reservation Cart'}
               >
                 <div className="relative">
                   {isAuthenticated && activeReservation ? (
-                    <Lock className="w-4 h-4 text-amber-300" />
+                    <Lock className="w-4 h-4 text-[var(--accent)]" />
                   ) : (
                     <ShoppingBag className="w-4 h-4" />
                   )}
                   {isAuthenticated && activeReservation ? (
-                    <span className="absolute -top-2 -right-2 bg-amber-400 text-slate-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                    <span className="absolute -top-2.5 -right-2.5 font-mono bg-[var(--warn)] text-[var(--bg)] text-[9.5px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                       {activeReservation.items.length}
                     </span>
                   ) : totalItems > 0 ? (
-                    <span className="absolute -top-2 -right-2 bg-amber-400 text-slate-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                    <span className="absolute -top-2.5 -right-2.5 font-mono bg-[var(--ink)] text-[var(--panel)] text-[9.5px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                       {totalItems}
                     </span>
                   ) : null}
@@ -298,22 +340,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="hidden sm:flex flex-col items-start leading-tight">
                   {isAuthenticated && activeReservation ? (
                     <>
-                      <span className="text-xs font-black tracking-wide text-amber-300 font-mono">
+                      <span className="font-mono text-xs font-bold tracking-wider text-[var(--accent)]">
                         OTP: {activeReservation.otp}
                       </span>
-                      <span className="text-[10px] text-emerald-200">
-                        View Reservation
+                      <span className="font-mono text-[9px] text-[var(--ink3)] uppercase">
+                        View Slip
                       </span>
                     </>
                   ) : (
                     <>
-                      <span className="text-xs font-bold">
+                      <span className="font-mono text-xs font-bold tabular-nums">
                         {totalItems > 0
                           ? `${STORE_CONFIG.features.currencySymbol}${subtotal}`
-                          : 'Reservations'}
+                          : 'Cart / Hold'}
                       </span>
                       {reservationExpiresAt && totalItems > 0 && (
-                        <span className="text-[10px] text-emerald-200 flex items-center gap-0.5">
+                        <span className="font-mono text-[9px] text-[var(--primary-foreground)]/80 flex items-center gap-0.5 tabular-nums">
                           <Timer className="w-2.5 h-2.5" />
                           {formattedTimeRemaining}
                         </span>

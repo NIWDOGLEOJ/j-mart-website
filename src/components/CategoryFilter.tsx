@@ -12,8 +12,8 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   onSelectCategory,
 }) => {
   return (
-    <div className="w-full overflow-x-auto py-2 scrollbar-none">
-      <div className="flex items-center gap-2 min-w-max px-1">
+    <div className="w-full overflow-x-auto py-1 scrollbar-none">
+      <div className="flex items-center gap-2 min-w-max px-0.5">
         {categories.map(({ name, count }) => {
           const isActive = selectedCategory === name;
           return (
@@ -23,16 +23,18 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
               type="button"
               aria-pressed={isActive}
               aria-label={`${name} category, ${count} products`}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`h-[38px] px-3.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-2 select-none ${
                 isActive
-                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30'
-                  : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 shadow-xs'
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent-hi)] border-[1.5px] border-[var(--accent-line)]'
+                  : 'bg-[var(--panel)] hover:bg-[var(--sub)] text-[var(--ink2)] hover:text-[var(--ink)] border border-[var(--border)]'
               }`}
             >
               <span>{name}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                  isActive ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-500'
+                className={`font-mono text-[10px] tabular-nums font-bold px-1.5 py-0.5 rounded ${
+                  isActive
+                    ? 'bg-[var(--panel)] text-[var(--accent-hi)] border border-[var(--accent-line)]/40'
+                    : 'bg-[var(--sub)] text-[var(--ink3)] border border-[var(--border)]'
                 }`}
               >
                 {count}

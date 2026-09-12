@@ -14,6 +14,7 @@ export interface Product {
   description?: string;
   imageUrl?: string;
   isPopular?: boolean;
+  gstRate?: number;
   tags?: string[];
   lastUpdated?: string;
 }

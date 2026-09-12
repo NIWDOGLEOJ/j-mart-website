@@ -29,38 +29,50 @@ export const StockFilterBar: React.FC<StockFilterBarProps> = ({
     filters.sortBy !== 'featured';
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+    <div className="bg-[var(--panel)] rounded-xl border border-[var(--border)] p-3 sm:p-4 transition-colors flex flex-wrap items-center justify-between gap-3">
       {/* Left: Result count & active status */}
       <div className="flex items-center gap-3">
-        <span className="text-sm font-semibold text-slate-800">
-          {totalFiltered} {totalFiltered === 1 ? 'Product' : 'Products'} found
-        </span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono text-sm font-bold text-[var(--ink)] tabular-nums">
+            {totalFiltered}
+          </span>
+          <span className="text-xs text-[var(--ink3)] font-medium">
+            {totalFiltered === 1 ? 'product' : 'products'} listed
+          </span>
+        </div>
 
         {hasActiveFilters && (
           <button
+            type="button"
             onClick={onResetFilters}
-            className="inline-flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 font-medium hover:underline cursor-pointer"
+            className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--danger)] hover:underline cursor-pointer"
           >
             <RotateCcw className="w-3 h-3" />
-            Reset filters
+            <span>Reset filters</span>
           </button>
         )}
       </div>
 
       {/* Right: In-Stock Toggle and Sort dropdown */}
-      <div className="flex flex-wrap items-center gap-3 ml-auto">
-        {/* "In Stock Only" quick toggle */}
-        <label className="flex items-center gap-2 cursor-pointer select-none bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-all">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 ml-auto">
+        {/* "In Stock Only" toggle chip */}
+        <label
+          className={`h-9 px-3 rounded-lg text-xs font-semibold cursor-pointer select-none inline-flex items-center gap-2 transition-colors ${
+            filters.inStockOnly
+              ? 'bg-[var(--accent-soft)] border-[1.5px] border-[var(--accent-line)] text-[var(--ink)]'
+              : 'bg-[var(--sub)] hover:bg-[var(--rule2)] border border-[var(--border2)] text-[var(--ink2)]'
+          }`}
+        >
           <div
-            className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+            className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${
               filters.inStockOnly
-                ? 'bg-emerald-600 border-emerald-600 text-white'
-                : 'border-slate-300 bg-white'
+                ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--primary-foreground)]'
+                : 'border-[var(--border2)] bg-[var(--panel)]'
             }`}
           >
-            {filters.inStockOnly && <Check className="w-3 h-3 stroke-[3]" />}
+            {filters.inStockOnly && <Check className="w-2.5 h-2.5 stroke-[3]" />}
           </div>
-          <span className="text-xs font-semibold text-slate-700">In Stock Only</span>
+          <span>In Stock Only</span>
           <input
             type="checkbox"
             checked={filters.inStockOnly}
@@ -70,26 +82,32 @@ export const StockFilterBar: React.FC<StockFilterBarProps> = ({
         </label>
 
         {brands.length > 0 && (
-          <label className="flex items-center gap-1.5 text-xs text-slate-600">
-            <span className="hidden sm:inline font-medium">Brand:</span>
+          <label className="flex items-center gap-1.5 text-xs text-[var(--ink3)]">
+            <span className="hidden sm:inline font-mono text-[10px] uppercase font-bold tracking-wider">
+              Brand:
+            </span>
             <select
               value={filters.brand}
               onChange={(e) => onFilterChange({ brand: e.target.value })}
               aria-label="Filter products by brand"
-              className="max-w-[9rem] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-hidden focus:border-emerald-500 cursor-pointer"
+              className="h-9 max-w-[9rem] bg-[var(--sub)] hover:bg-[var(--rule2)] border border-[var(--border2)] rounded-lg px-2.5 py-1 text-xs font-semibold text-[var(--ink)] outline-none focus:border-[var(--accent)] cursor-pointer"
             >
-              <option value="All">All brands</option>
+              <option value="All">All Brands</option>
               {brands.map((brand) => (
-                <option key={brand} value={brand}>{brand}</option>
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
               ))}
             </select>
           </label>
         )}
 
         {/* Sort selector */}
-        <div className="flex items-center gap-1.5 text-xs text-slate-600">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
-          <span className="hidden sm:inline font-medium">Sort:</span>
+        <div className="flex items-center gap-1.5 text-xs text-[var(--ink3)]">
+          <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--ink4)]" />
+          <span className="hidden sm:inline font-mono text-[10px] uppercase font-bold tracking-wider">
+            Sort:
+          </span>
           <select
             value={filters.sortBy}
             onChange={(e) =>
@@ -98,9 +116,9 @@ export const StockFilterBar: React.FC<StockFilterBarProps> = ({
               })
             }
             aria-label="Sort products by"
-            className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-hidden focus:border-emerald-500 cursor-pointer"
+            className="h-9 bg-[var(--sub)] hover:bg-[var(--rule2)] border border-[var(--border2)] rounded-lg px-2.5 py-1 text-xs font-semibold text-[var(--ink)] outline-none focus:border-[var(--accent)] cursor-pointer"
           >
-            <option value="featured">Featured / Popular</option>
+            <option value="featured">Featured</option>
             <option value="price_asc">Price: Low to High</option>
             <option value="price_desc">Price: High to Low</option>
             <option value="name">Name (A – Z)</option>
@@ -108,14 +126,21 @@ export const StockFilterBar: React.FC<StockFilterBarProps> = ({
           </select>
         </div>
 
-        <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5" role="group" aria-label="Catalog view">
+        {/* View Mode Grid/List Segmented Control */}
+        <div
+          className="inline-flex items-center rounded-lg border border-[var(--border2)] bg-[var(--sub)] p-0.5"
+          role="group"
+          aria-label="Catalog view"
+        >
           <button
             type="button"
             onClick={() => onViewModeChange('grid')}
             aria-pressed={viewMode === 'grid'}
             aria-label="Show products as a grid"
-            className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
-              viewMode === 'grid' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-400 hover:text-slate-700'
+            className={`rounded-md p-1.5 transition-colors cursor-pointer ${
+              viewMode === 'grid'
+                ? 'bg-[var(--panel)] text-[var(--ink)] border border-[var(--border)]'
+                : 'text-[var(--ink4)] hover:text-[var(--ink)]'
             }`}
           >
             <LayoutGrid className="h-3.5 w-3.5" />
@@ -125,8 +150,10 @@ export const StockFilterBar: React.FC<StockFilterBarProps> = ({
             onClick={() => onViewModeChange('list')}
             aria-pressed={viewMode === 'list'}
             aria-label="Show products as a list"
-            className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
-              viewMode === 'list' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-400 hover:text-slate-700'
+            className={`rounded-md p-1.5 transition-colors cursor-pointer ${
+              viewMode === 'list'
+                ? 'bg-[var(--panel)] text-[var(--ink)] border border-[var(--border)]'
+                : 'text-[var(--ink4)] hover:text-[var(--ink)]'
             }`}
           >
             <List className="h-3.5 w-3.5" />

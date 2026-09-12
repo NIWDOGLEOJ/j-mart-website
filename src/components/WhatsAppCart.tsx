@@ -14,15 +14,15 @@ import {
   Lock,
   Copy,
   RotateCcw,
-  MapPin,
-  Phone,
-  Share2,
   CheckCircle2,
+  FileText,
+  List,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { STORE_CONFIG } from '../config/storeConfig';
 import { copyText } from '../utils/clipboard';
+import { ReceiptView } from './ui/receipt-view';
 
 export const WhatsAppCart: React.FC = () => {
   const {
@@ -59,6 +59,7 @@ export const WhatsAppCart: React.FC = () => {
   const [copiedOtp, setCopiedOtp] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelSuccessMsg, setCancelSuccessMsg] = useState<string | null>(null);
+  const [activeReservationTab, setActiveReservationTab] = useState<'slip' | 'details'>('slip');
 
   // Countdown timer for active confirmed reservation
   const [resSecondsRemaining, setResSecondsRemaining] = useState<number>(30 * 60);
@@ -108,7 +109,7 @@ export const WhatsAppCart: React.FC = () => {
     const res = await cancelReservation();
     setShowCancelConfirm(false);
     if (res.success) {
-      setCancelSuccessMsg('Reservation cancelled. Items have been returned to store inventory.');
+      setCancelSuccessMsg('Reservation cancelled. Items returned to store inventory.');
     } else {
       setSubmitError(res.error || 'Failed to cancel reservation.');
     }
@@ -117,10 +118,10 @@ export const WhatsAppCart: React.FC = () => {
   const handleCopyOtp = async () => {
     if (!activeReservation) return;
     const text = [
-      `🛒 J MART — IN-STORE RESERVATION`,
+      `🛒 J MART — IN-STORE RESERVATION SLIP`,
       `Reservation ID: ${activeReservation.reservationId}`,
       `Customer: ${activeReservation.customerName}`,
-      `🔑 4-Digit Pickup OTP: ${activeReservation.otp}`,
+      `🔑 4-Digit Counter OTP: ${activeReservation.otp}`,
       `Total Payable: ${currency}${activeReservation.total}`,
       `Store: ${STORE_CONFIG.address}, ${STORE_CONFIG.cityStateZip}`,
     ].join('\n');
@@ -155,70 +156,72 @@ export const WhatsAppCart: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Dimmed backdrop */}
+      {/* Scrim backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-[rgba(8,9,8,0.65)] backdrop-blur-xs transition-opacity"
         onClick={closeCart}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
         <div
-          className="w-screen max-w-md bg-white shadow-2xl flex flex-col"
+          className="w-screen max-w-md bg-[var(--panel)] text-[var(--ink)] border-l border-[var(--border)] flex flex-col"
           role="dialog"
           aria-modal="true"
           aria-labelledby="reservation-bag-title"
         >
           {/* Drawer Header */}
-          <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between">
+          <div className="px-5 py-4 bg-[var(--sub)] border-b border-[var(--rule2)] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent-line)] flex items-center justify-center">
                 <ShoppingBag className="w-4 h-4" />
               </div>
               <div>
-                <h3 id="reservation-bag-title" className="text-base font-bold">In-Store Reservation Bag</h3>
-                <p className="text-xs text-slate-400">
-                  {activeReservation
-                    ? '🟢 Active Reservation (OTP Ready)'
-                    : `${items.length} ${items.length === 1 ? 'item' : 'items'} in bag`}
-                </p>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)] block">
+                  Express Desk
+                </span>
+                <h3 id="reservation-bag-title" className="text-base font-bold text-[var(--ink)] leading-none">
+                  {activeReservation ? 'Active Reservation Slip' : 'Store Reservation Cart'}
+                </h3>
               </div>
             </div>
 
             <button
               onClick={closeCart}
-              aria-label="Close reservation bag"
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Close reservation cart"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--ink3)] hover:text-[var(--ink)] hover:bg-[var(--rule2)] transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Cancellation Feedback Notice */}
           {cancelSuccessMsg && (
-            <div className="p-3 bg-emerald-600 text-white text-xs font-semibold flex items-center justify-between gap-2 shadow-xs">
+            <div className="p-3 bg-[var(--ok-soft)] text-[var(--ok)] border-b border-[var(--ok-line)] text-xs font-semibold flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{cancelSuccessMsg}</span>
               </div>
               <button
+                type="button"
                 onClick={() => setCancelSuccessMsg(null)}
-                className="text-xs font-bold underline cursor-pointer"
+                className="font-mono text-[11px] font-bold underline cursor-pointer"
               >
                 Dismiss
               </button>
             </div>
           )}
 
-          {/* Auto-Expiry Warning Notice if triggered */}
+          {/* Auto-Expiry Warning Notice */}
           {hasExpiredNotice && (
-            <div className="p-3 bg-amber-500 text-slate-950 text-xs font-semibold flex items-center justify-between gap-2 shadow-xs">
+            <div className="p-3 bg-[var(--warn-soft)] text-[var(--warn)] border-b border-[var(--warn-line)] text-xs font-semibold flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <AlertTriangle className="w-4 h-4 shrink-0" />
-                <span>Your reservation timer expired. Check live stock again before submitting.</span>
+                <span>Reservation hold expired. Live store stock has been released.</span>
               </div>
               <button
+                type="button"
                 onClick={dismissExpiredNotice}
-                className="text-xs font-bold underline cursor-pointer"
+                className="font-mono text-[11px] font-bold underline cursor-pointer"
               >
                 Dismiss
               </button>
@@ -226,167 +229,193 @@ export const WhatsAppCart: React.FC = () => {
           )}
 
           {inventoryChangeNotice && (
-            <div className="p-3 bg-sky-50 text-sky-900 border-b border-sky-200 text-xs font-semibold flex items-center justify-between gap-2 shadow-xs" role="alert">
+            <div
+              className="p-3 bg-[var(--sub)] border-b border-[var(--border)] text-xs font-semibold text-[var(--ink)] flex items-center justify-between gap-2"
+              role="alert"
+            >
               <span>{inventoryChangeNotice}</span>
               <button
                 type="button"
                 onClick={dismissInventoryChangeNotice}
-                className="text-xs font-bold underline cursor-pointer shrink-0"
+                className="font-mono text-[11px] text-[var(--accent)] underline cursor-pointer shrink-0"
               >
                 Dismiss
               </button>
             </div>
           )}
 
-          {/* VIEW 1: ACTIVE RESERVATION WITH 4-DIGIT OTP DIRECTLY IN CART */}
+          {/* VIEW 1: ACTIVE RESERVATION WITH 4-DIGIT OTP AND AUTHENTIC RECEIPT VIEW */}
           {activeReservation ? (
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-              {/* Prominent 4-Digit Pickup OTP Box */}
-              <div className="bg-emerald-50 border-2 border-dashed border-emerald-400 rounded-2xl p-4 text-center shadow-xs">
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1.5">
-                  <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                  Your Bill Counter Pickup OTP
-                </div>
-
-                <div className="text-4xl sm:text-5xl font-mono font-black tracking-[0.3em] text-emerald-700 py-1 select-all">
-                  {activeReservation.otp}
-                </div>
-
-                <p className="text-[11px] text-emerald-900/80 font-medium mt-1">
-                  Show this 4-digit code to the cashier at the bill counter to accept & print your bill.
-                </p>
-
-                <div className="mt-3 grid grid-cols-3 gap-1.5 text-[10px] text-emerald-900/80">
-                  <div className="rounded-lg bg-white/70 px-1.5 py-1.5"><strong>1.</strong> Show OTP</div>
-                  <div className="rounded-lg bg-white/70 px-1.5 py-1.5"><strong>2.</strong> Pay at counter</div>
-                  <div className="rounded-lg bg-white/70 px-1.5 py-1.5"><strong>3.</strong> Collect items</div>
-                </div>
-
-                <div className="mt-3 flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleCopyOtp}
-                    className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs"
-                  >
-                    {copiedOtp ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Copied OTP!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-3.5 h-3.5" />
-                        <span>Copy OTP & Details</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+              {/* Tab Selector: Slip Preview vs Quick Controls */}
+              <div className="flex rounded-lg border border-[var(--border2)] bg-[var(--sub)] p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveReservationTab('slip')}
+                  className={`flex-1 py-1.5 rounded-md text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                    activeReservationTab === 'slip'
+                      ? 'bg-[var(--panel)] text-[var(--ink)] border border-[var(--border)]'
+                      : 'text-[var(--ink3)] hover:text-[var(--ink)]'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Thermal Slip</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveReservationTab('details')}
+                  className={`flex-1 py-1.5 rounded-md text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                    activeReservationTab === 'details'
+                      ? 'bg-[var(--panel)] text-[var(--ink)] border border-[var(--border)]'
+                      : 'text-[var(--ink3)] hover:text-[var(--ink)]'
+                  }`}
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span>OTP & Actions</span>
+                </button>
               </div>
 
-              {/* 30-Minute Hold Timer Box */}
-              <div className="bg-slate-900 text-white rounded-2xl p-3.5 shadow-sm">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="flex items-center gap-1.5 font-bold text-emerald-400">
-                    <Timer className="w-4 h-4 animate-pulse" />
-                    <span>30-Minute Lock Active</span>
+              {/* Active 30-Minute Hold Timer Banner */}
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--sub)] p-3 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--accent)] flex items-center gap-1.5">
+                    <Timer className="w-3.5 h-3.5 animate-pulse" />
+                    <span>30-Min Shelf Lock Active</span>
                   </span>
-                  <span className="font-mono font-black text-amber-400 text-sm">
-                    {resFormattedTime} left
+                  <span className="font-mono font-bold text-sm text-[var(--warn)] tabular-nums">
+                    {resFormattedTime}
                   </span>
                 </div>
-
-                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-[var(--panel)] h-1.5 rounded-full overflow-hidden border border-[var(--rule)]">
                   <div
-                    className="bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-400 h-full transition-all duration-1000"
+                    className="bg-[var(--accent)] h-full transition-all duration-1000"
                     style={{ width: `${resProgress}%` }}
                   />
                 </div>
-
-                <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
-                  Items will auto-return to store shelves if not claimed in 30 mins.
-                </p>
               </div>
 
-              {/* Order Breakdown */}
-              <div className="border border-slate-200 rounded-2xl p-4 bg-slate-50/80 space-y-2.5">
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2 text-xs">
-                  <span className="font-bold text-slate-700">Reserved Items</span>
-                  <span className="font-mono font-semibold text-slate-500">
-                    #{activeReservation.reservationId}
-                  </span>
-                </div>
-
-                <div className="space-y-2 max-h-44 overflow-y-auto divide-y divide-slate-100 pr-1">
-                  {activeReservation.items.map((item: any, idx) => {
-                    const name = item?.product?.name || item?.name || 'Product';
-                    const qty = Number(item?.quantity) || 1;
-                    const price = Number(item?.product?.price ?? item?.price ?? 0);
-                    return (
-                      <div key={idx} className="pt-2 first:pt-0 flex justify-between items-center text-xs">
-                        <div className="truncate pr-2">
-                          <span className="font-bold text-slate-800">{name}</span>
-                          <span className="text-slate-500 ml-1.5">x {qty}</span>
-                        </div>
-                        <div className="font-bold text-slate-900 shrink-0">
-                          {currency}{(price * qty).toFixed(2)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="border-t border-slate-200 pt-2 flex justify-between items-baseline">
-                  <span className="text-xs font-extrabold text-slate-900">Total Payable at Counter</span>
-                  <span className="text-base font-black text-emerald-700">
-                    {currency}{activeReservation.total.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Store Location */}
-              <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-3.5 text-xs space-y-1 text-slate-700">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-white border border-emerald-200/80 p-1 flex items-center justify-center shrink-0 shadow-2xs">
-                    <img src="/logo-mark.png" alt={STORE_CONFIG.name} className="w-full h-full object-contain" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-900">{STORE_CONFIG.name} Express Counter</span>
-                    <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-emerald-700 shrink-0" />
-                      <span>{STORE_CONFIG.address}, {STORE_CONFIG.cityStateZip}</span>
+              {activeReservationTab === 'slip' ? (
+                /* Thermal Receipt View */
+                <ReceiptView
+                  reservationId={activeReservation.reservationId}
+                  otp={activeReservation.otp}
+                  items={activeReservation.items.map((it: any) => ({
+                    name: it.product?.name || it.name || 'Product',
+                    sku: it.product?.sku || it.sku,
+                    price: Number(it.product?.price ?? it.price ?? 0),
+                    quantity: Number(it.quantity) || 1,
+                    gstRate: typeof it.product?.gstRate === 'number' ? it.product.gstRate : typeof it.gstRate === 'number' ? it.gstRate : 5,
+                    uom: it.product?.uom || it.uom,
+                  }))}
+                  subtotal={activeReservation.total}
+                  total={activeReservation.total}
+                  customerName={activeReservation.customerName}
+                  customerPhone={activeReservation.customerPhone}
+                  createdAt={activeReservation.createdAt}
+                />
+              ) : (
+                /* Details / OTP view */
+                <div className="space-y-4">
+                  {/* Big OTP Card */}
+                  <div className="bg-[var(--sub)] border-2 border-dashed border-[var(--border2)] rounded-xl p-5 text-center">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)] mb-1 block">
+                      Express Counter Code
+                    </span>
+                    <div className="font-mono text-4xl sm:text-5xl font-black tracking-[0.3em] text-[var(--accent)] py-2 select-all">
+                      {activeReservation.otp}
+                    </div>
+                    <p className="text-xs text-[var(--ink2)] mt-1">
+                      Show this 4-digit code to the cashier to instantly pull your cart & print the receipt.
                     </p>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyOtp}
+                      className="mt-3 inline-flex items-center gap-1.5 bg-[var(--panel)] hover:bg-[var(--rule2)] text-[var(--ink)] text-xs font-mono font-bold px-3 py-1.5 rounded-lg border border-[var(--border2)] transition-colors cursor-pointer"
+                    >
+                      {copiedOtp ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-[var(--ok)]" />
+                          <span>Copied Code!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Details</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Reserved Items Breakdown */}
+                  <div className="border border-[var(--border)] rounded-xl p-4 bg-[var(--sub)] space-y-2">
+                    <div className="flex items-center justify-between border-b border-[var(--rule)] pb-2 text-xs">
+                      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)]">
+                        Reserved Items
+                      </span>
+                      <span className="font-mono text-[11px] text-[var(--ink3)]">
+                        #{activeReservation.reservationId}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-44 overflow-y-auto divide-y divide-[var(--rule)] pr-1">
+                      {activeReservation.items.map((item: any, idx: number) => {
+                        const name = item?.product?.name || item?.name || 'Product';
+                        const qty = Number(item?.quantity) || 1;
+                        const price = Number(item?.product?.price ?? item?.price ?? 0);
+                        return (
+                          <div key={idx} className="pt-2 first:pt-0 flex justify-between items-center text-xs">
+                            <div className="truncate pr-2">
+                              <span className="font-semibold text-[var(--ink)]">{name}</span>
+                              <span className="font-mono text-[var(--ink3)] ml-1.5 tabular-nums">×{qty}</span>
+                            </div>
+                            <div className="font-mono font-bold text-[var(--ink)] shrink-0 tabular-nums">
+                              {currency}{(price * qty).toFixed(2)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="border-t border-[var(--rule)] pt-2 flex justify-between items-baseline">
+                      <span className="text-xs font-bold text-[var(--ink)]">Payable at Counter</span>
+                      <span className="font-mono text-base font-bold text-[var(--accent)] tabular-nums">
+                        {currency}{activeReservation.total.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 pt-0.5">
-                  <Phone className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                  <span className="text-[11px] text-slate-600 font-medium">Phone: {STORE_CONFIG.phone}</span>
-                </div>
-              </div>
+              )}
 
-              {/* Cancellation Option */}
-              <div className="pt-2 border-t border-slate-100 space-y-2">
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-[var(--rule)] space-y-2">
+                <button
+                  type="button"
+                  onClick={handleShareReservationWhatsApp}
+                  className="w-full h-11 bg-[var(--sub)] hover:bg-[var(--rule2)] text-[var(--ink)] border border-[var(--border2)] font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                  <span>Share Slip Details on WhatsApp</span>
+                </button>
+
                 {showCancelConfirm ? (
-                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-2 text-xs">
-                    <p className="text-rose-900 font-bold">
-                      Cancel reservation and return items to inventory?
-                    </p>
-                    <p className="text-rose-700 text-[11px]">
-                      Your items will immediately be returned to store shelves for other customers.
+                  <div className="p-3 bg-[var(--danger-soft)] border border-[var(--danger-line)] rounded-xl space-y-2 text-xs">
+                    <p className="text-[var(--danger)] font-bold">
+                      Cancel reservation and release items back to shelves?
                     </p>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={handleCancelReservation}
                         disabled={isCancellingReservation}
-                        className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors cursor-pointer text-center"
+                        className="flex-1 py-1.5 bg-[var(--danger)] hover:opacity-90 disabled:opacity-50 text-white font-bold rounded-lg transition-colors cursor-pointer text-center"
                       >
-                        {isCancellingReservation ? 'Returning Stock...' : 'Yes, Cancel & Return Stock'}
+                        {isCancellingReservation ? 'Releasing...' : 'Yes, Release Stock'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowCancelConfirm(false)}
-                        className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors cursor-pointer"
+                        className="px-3 py-1.5 bg-[var(--sub)] text-[var(--ink)] font-bold rounded-lg border border-[var(--border2)] cursor-pointer"
                       >
                         Keep Hold
                       </button>
@@ -396,49 +425,34 @@ export const WhatsAppCart: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowCancelConfirm(true)}
-                    className="w-full py-2.5 px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-dashed border-rose-200 rounded-xl font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 text-xs text-[var(--danger)] hover:underline flex items-center justify-center gap-1 cursor-pointer font-medium"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Cancel Reservation & Return Items to Inventory</span>
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Cancel Reservation & Return Items to Shelves</span>
                   </button>
                 )}
-
-                <button
-                  type="button"
-                  onClick={handleShareReservationWhatsApp}
-                  className="w-full py-2.5 px-3 bg-[#25D366] hover:bg-[#20bd5a] text-slate-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>Share Reservation Details on WhatsApp</span>
-                </button>
               </div>
             </div>
           ) : (
             /* VIEW 2: UNCONFIRMED ITEMS OR EMPTY BAG */
             <>
-              {/* Active 30-Minute Timer Banner for unconfirmed items */}
+              {/* Active Timer Banner for Unconfirmed Items */}
               {reservationExpiresAt && items.length > 0 && (
-                <div className="bg-emerald-950 text-white p-3.5 border-b border-emerald-800/60">
+                <div className="bg-[var(--sub)] border-b border-[var(--rule)] p-3">
                   <div className="flex items-center justify-between text-xs mb-1.5">
-                    <span className="flex items-center gap-1.5 font-bold text-emerald-400">
-                      <Timer className="w-4 h-4 animate-pulse" />
-                      <span>30-Minute Reservation Timer</span>
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--accent)] flex items-center gap-1.5">
+                      <Timer className="w-3.5 h-3.5 animate-pulse" />
+                      <span>30-Minute Cart Timer</span>
                     </span>
-                    <span className="font-mono font-black text-sm text-amber-300">
+                    <span className="font-mono font-bold text-xs text-[var(--warn)] tabular-nums">
                       {formattedTimeRemaining}
                     </span>
                   </div>
-
-                  <div className="w-full bg-emerald-900/60 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-[var(--panel)] h-1.5 rounded-full overflow-hidden border border-[var(--rule)]">
                     <div
-                      className="bg-gradient-to-r from-emerald-400 to-amber-400 h-full transition-all duration-1000"
+                      className="bg-[var(--accent)] h-full transition-all duration-1000"
                       style={{ width: `${progressPercent}%` }}
                     />
-                  </div>
-
-                  <div className="mt-1.5 text-[10px] text-emerald-300/80 flex items-center justify-between">
-                    <span>Confirm to lock live store stock</span>
-                    <span>Unreserves at 00:00</span>
                   </div>
                 </div>
               )}
@@ -446,12 +460,12 @@ export const WhatsAppCart: React.FC = () => {
               {/* Empty Bag State */}
               {items.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
-                    <ShoppingBag className="w-8 h-8" />
+                  <div className="w-16 h-16 rounded-xl bg-[var(--sub)] border border-[var(--border)] flex items-center justify-center text-[var(--ink3)] mb-3">
+                    <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
                   </div>
-                  <h4 className="text-base font-bold text-slate-800">Your reservation list is empty</h4>
-                  <p className="text-xs text-slate-500 max-w-xs mt-1">
-                    Browse our live store inventory and reserve items for quick counter pickup.
+                  <h4 className="text-sm font-bold text-[var(--ink)]">Your reservation list is empty</h4>
+                  <p className="text-xs text-[var(--ink3)] max-w-xs mt-1">
+                    Explore live inventory to hold items for express pickup at our Ramapuram counter.
                   </p>
                   {!isAuthenticated && (
                     <button
@@ -459,79 +473,79 @@ export const WhatsAppCart: React.FC = () => {
                         closeCart();
                         openLoginModal();
                       }}
-                      className="mt-4 inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer"
+                      className="mt-4 inline-flex items-center gap-1.5 bg-[var(--sub)] hover:bg-[var(--rule2)] text-[var(--ink)] border border-[var(--border2)] text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
                     >
-                      <User className="w-3.5 h-3.5" />
-                      Sign In to Enable Reservations
+                      <User className="w-3.5 h-3.5 text-[var(--accent)]" />
+                      <span>Sign In to Enable Reservations</span>
                     </button>
                   )}
                 </div>
               ) : (
                 <>
                   {/* Items List */}
-                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 divide-y divide-slate-100">
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2.5 divide-y divide-[var(--rule)]">
                     {items.map(({ product, quantity }) => {
                       const lineTotal = product.price * quantity;
                       const maxAllowed = Math.max(1, product.stock);
 
                       return (
-                        <div key={product.id} className="pt-3 first:pt-0 flex gap-3 items-center">
-                          <div className="w-14 h-14 rounded-xl bg-slate-100 shrink-0 overflow-hidden relative">
-                            {product.imageUrl ? (() => {
-                              const isCustomPhoto = product.imageUrl.includes('/uploads/') || product.imageUrl.startsWith('data:');
-                              return (
-                                <img
-                                  src={product.imageUrl}
-                                  alt={product.name}
-                                  className={`w-full h-full ${isCustomPhoto ? 'object-contain p-1 bg-white' : 'object-cover'}`}
-                                />
-                              );
-                            })() : (
-                              <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">
+                        <div key={product.id} className="pt-2.5 first:pt-0 flex gap-3 items-center">
+                          <div className="w-12 h-12 rounded-lg bg-[var(--sub)] border border-[var(--border)] shrink-0 overflow-hidden relative">
+                            {product.imageUrl ? (
+                              <img
+                                src={product.imageUrl}
+                                alt={product.name}
+                                className="w-full h-full object-contain p-1"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center font-mono text-[10px] font-bold text-[var(--ink3)]">
                                 {product.name.slice(0, 2).toUpperCase()}
                               </div>
                             )}
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-slate-800 truncate" title={product.name}>
+                            <h4 className="text-xs font-semibold text-[var(--ink)] truncate" title={product.name}>
                               {product.name}
                             </h4>
-                            <div className="text-[11px] text-slate-500">
-                              {currency}{product.price} {product.uom ? `• ${product.uom}` : ''}
+                            <div className="font-mono text-[11px] text-[var(--ink3)] tabular-nums">
+                              {currency}{product.price.toFixed(2)} {product.uom ? `· ${product.uom}` : ''}
                             </div>
 
                             <div className="mt-1.5 flex items-center gap-2">
-                              <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50">
+                              <div className="flex items-center border border-[var(--border2)] rounded-md bg-[var(--sub)]">
                                 <button
+                                  type="button"
                                   onClick={() => updateQuantity(product.id, quantity - 1)}
-                                  className="w-6 h-6 text-slate-600 hover:bg-slate-200 rounded-l-lg text-xs font-bold flex items-center justify-center transition-colors cursor-pointer"
+                                  className="w-6 h-6 text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--rule2)] text-xs font-bold flex items-center justify-center transition-colors cursor-pointer"
                                 >
                                   -
                                 </button>
-                                <span className="w-6 text-center text-xs font-bold text-slate-800">
+                                <span className="w-6 text-center font-mono font-bold text-xs text-[var(--ink)] tabular-nums">
                                   {quantity}
                                 </span>
                                 <button
+                                  type="button"
                                   onClick={() => updateQuantity(product.id, quantity + 1)}
                                   disabled={quantity >= maxAllowed}
-                                  className={`w-6 h-6 text-slate-600 rounded-r-lg text-xs font-bold flex items-center justify-center transition-colors ${
+                                  className={`w-6 h-6 text-[var(--ink2)] text-xs font-bold flex items-center justify-center transition-colors ${
                                     quantity >= maxAllowed
-                                      ? 'opacity-40 cursor-not-allowed'
-                                      : 'hover:bg-slate-200 cursor-pointer'
+                                      ? 'opacity-30 cursor-not-allowed'
+                                      : 'hover:bg-[var(--rule2)] cursor-pointer'
                                   }`}
                                 >
                                   +
                                 </button>
                               </div>
 
-                              <span className="text-[10px] text-slate-400">
+                              <span className="font-mono text-[10px] text-[var(--ink4)] tabular-nums">
                                 (shelf: {maxAllowed})
                               </span>
 
                               <button
+                                type="button"
                                 onClick={() => removeFromCart(product.id)}
-                                className="ml-auto p-1 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                className="ml-auto p-1 text-[var(--ink3)] hover:text-[var(--danger)] transition-colors cursor-pointer"
                                 title="Remove item"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -540,30 +554,31 @@ export const WhatsAppCart: React.FC = () => {
                           </div>
 
                           <div className="text-right shrink-0">
-                            <span className="text-xs font-black text-slate-900">
-                              {currency}{lineTotal}
+                            <span className="font-mono text-xs font-bold text-[var(--ink)] tabular-nums">
+                              {currency}{lineTotal.toFixed(2)}
                             </span>
                           </div>
                         </div>
                       );
                     })}
 
-                    <div className="pt-3 text-right">
+                    <div className="pt-2 text-right">
                       <button
+                        type="button"
                         onClick={clearCart}
-                        className="text-[11px] text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                        className="font-mono text-[11px] text-[var(--ink4)] hover:text-[var(--danger)] transition-colors cursor-pointer"
                       >
-                        Clear all items
+                        Clear cart
                       </button>
                     </div>
                   </div>
 
                   {/* Loyalty Coupons */}
                   {isAuthenticated && unusedCoupons.length > 0 && (
-                    <div className="p-4 bg-emerald-50/60 border-t border-emerald-100">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950 mb-2">
-                        <Gift className="w-3.5 h-3.5 text-emerald-700" />
-                        Available Loyalty Coupons:
+                    <div className="p-3.5 bg-[var(--sub)] border-t border-[var(--rule)]">
+                      <div className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)] mb-2 flex items-center gap-1.5">
+                        <Gift className="w-3.5 h-3.5 text-[var(--accent)]" />
+                        <span>Loyalty Coupons</span>
                       </div>
                       <div className="space-y-1.5">
                         {unusedCoupons.map((coupon) => {
@@ -571,25 +586,27 @@ export const WhatsAppCart: React.FC = () => {
                           return (
                             <div
                               key={coupon.code}
-                              className="flex items-center justify-between p-2 rounded-xl bg-white border border-emerald-200 text-xs shadow-2xs"
+                              className="flex items-center justify-between p-2 rounded-lg bg-[var(--panel)] border border-[var(--border2)] text-xs"
                             >
-                              <div>
-                                <span className="font-extrabold text-emerald-800">{coupon.code}</span>
-                                <span className="text-slate-500 ml-1.5">
+                              <div className="font-mono">
+                                <span className="font-bold text-[var(--accent)]">{coupon.code}</span>
+                                <span className="text-[var(--ink3)] ml-1.5">
                                   (Save {currency}{coupon.discountAmount})
                                 </span>
                               </div>
                               {isApplied ? (
                                 <button
+                                  type="button"
                                   onClick={removeCoupon}
-                                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                                  className="font-mono text-[11px] font-bold text-[var(--danger)] hover:underline cursor-pointer"
                                 >
                                   Remove
                                 </button>
                               ) : (
                                 <button
+                                  type="button"
                                   onClick={() => applyCoupon(coupon)}
-                                  className="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                                  className="h-6 px-2.5 rounded text-[11px] font-bold bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-[var(--primary-foreground)] transition-colors cursor-pointer"
                                 >
                                   Apply
                                 </button>
@@ -602,63 +619,66 @@ export const WhatsAppCart: React.FC = () => {
                   )}
 
                   {/* Customer Pickup Details */}
-                  <div className="p-4 bg-slate-50 border-t border-slate-200/80 space-y-2.5">
+                  <div className="p-4 bg-[var(--sub)] border-t border-[var(--rule)] space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-600 font-medium">Reserved by:</span>
-                      <span className="font-bold text-slate-800">
-                        {currentCustomer?.name || 'Loyalty Member'} ({currentCustomer?.tier || 'Member'})
+                      <span className="text-[var(--ink3)] font-medium">Customer:</span>
+                      <span className="font-semibold text-[var(--ink)]">
+                        {currentCustomer?.name || 'Guest'} ({currentCustomer?.tier || 'Member'})
                       </span>
                     </div>
 
                     <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--ink3)]" />
                       <input
                         type="text"
                         value={pickupTime}
                         onChange={(e) => setPickupTime(e.target.value)}
-                        placeholder="Pickup Time (e.g. In 20 minutes / 6:00 PM)"
+                        placeholder="Estimated Arrival (e.g. In 20 mins / 6:00 PM)"
                         aria-label="Optional pickup time"
-                        className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:border-emerald-500 outline-hidden"
+                        className="w-full h-9 pl-9 pr-3 text-xs bg-[var(--panel)] border border-[var(--border2)] rounded-lg text-[var(--ink)] placeholder:text-[var(--ink4)] outline-none focus:border-[var(--accent)]"
                       />
                     </div>
                   </div>
 
-                  {/* Drawer Footer & Actions */}
-                  <div className="p-4 sm:p-5 bg-white border-t border-slate-200">
-                    <div className="space-y-1.5 mb-4 text-xs">
-                      <div className="flex justify-between text-slate-600">
-                        <span>Subtotal</span>
-                        <span className="font-semibold text-slate-800">{currency}{subtotal}</span>
+                  {/* Drawer Footer & Total Stack */}
+                  <div className="p-4 sm:p-5 bg-[var(--panel)] border-t border-[var(--border)]">
+                    <div className="space-y-1.5 mb-4 text-xs font-mono">
+                      <div className="flex justify-between text-[var(--ink2)]">
+                        <span>Subtotal (incl. GST)</span>
+                        <span className="tabular-nums font-bold text-[var(--ink)]">{currency}{subtotal.toFixed(2)}</span>
                       </div>
 
                       {appliedCoupon && (
-                        <div className="flex justify-between text-emerald-700 font-bold">
+                        <div className="flex justify-between text-[var(--ok)] font-bold">
                           <span className="flex items-center gap-1">
                             <Check className="w-3.5 h-3.5" />
                             Coupon ({appliedCoupon.code})
                           </span>
-                          <span>-{currency}{appliedCoupon.discountAmount}</span>
+                          <span className="tabular-nums">-{currency}{appliedCoupon.discountAmount.toFixed(2)}</span>
                         </div>
                       )}
 
                       {savings > 0 && (
-                        <div className="flex justify-between text-emerald-700 font-semibold">
+                        <div className="flex justify-between text-[var(--ok)]">
                           <span>Total Savings vs MRP</span>
-                          <span>{currency}{savings}</span>
+                          <span className="tabular-nums">{currency}{savings.toFixed(2)}</span>
                         </div>
                       )}
 
-                      <div className="pt-2 border-t border-slate-100 flex justify-between items-baseline">
-                        <span className="text-sm font-bold text-slate-900">Payable at Counter</span>
-                        <span className="text-xl font-black text-emerald-700">
-                          {currency}{finalTotal}
+                      <div className="pt-2 border-t border-[var(--rule)] flex justify-between items-baseline">
+                        <span className="font-sans text-xs font-bold text-[var(--ink)]">Payable at Counter</span>
+                        <span className="text-xl font-bold text-[var(--ink)] tabular-nums">
+                          {currency}{finalTotal.toFixed(2)}
                         </span>
                       </div>
                     </div>
 
                     {submitError && (
-                      <div role="alert" className="mb-3 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+                      <div
+                        role="alert"
+                        className="mb-3 p-2.5 bg-[var(--danger-soft)] border border-[var(--danger-line)] rounded-lg text-[var(--danger)] text-xs flex items-center gap-2"
+                      >
+                        <AlertTriangle className="w-4 h-4 shrink-0" />
                         <span>{submitError}</span>
                       </div>
                     )}
@@ -668,17 +688,17 @@ export const WhatsAppCart: React.FC = () => {
                       type="button"
                       onClick={handleLockAndSend}
                       disabled={isSubmittingReservation}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 text-white font-bold py-3.5 px-4 rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full h-[46px] bg-[var(--accent)] hover:bg-[var(--accent-hi)] disabled:opacity-40 text-[var(--primary-foreground)] font-bold text-sm rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
                     >
                       {isSubmittingReservation ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span>Locking Stock & Generating OTP...</span>
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          <span>Generating Reservation Slip & OTP...</span>
                         </>
                       ) : (
                         <>
                           <Lock className="w-4 h-4" />
-                          <span>Lock Stock & Send to Bill Counter</span>
+                          <span>Lock Stock & Generate Slip</span>
                         </>
                       )}
                     </button>
@@ -686,15 +706,15 @@ export const WhatsAppCart: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleSendOrder}
-                      className="w-full mt-2 py-1 text-slate-400 hover:text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      className="w-full mt-2 py-1 text-[var(--ink3)] hover:text-[var(--accent)] text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Or backup reservation on WhatsApp</span>
+                      <MessageCircle className="w-3.5 h-3.5 text-[var(--ok)]" />
+                      <span>Send inquiry via WhatsApp</span>
                     </button>
 
-                    <p className="mt-2 text-[10px] text-center text-slate-400 flex items-center justify-center gap-1">
-                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                      Confirm to lock these items in live store inventory for 30 minutes. Pay upon pickup.
+                    <p className="mt-2 text-[10px] text-center text-[var(--ink3)] flex items-center justify-center gap-1">
+                      <ShieldCheck className="w-3 h-3 text-[var(--ok)]" />
+                      <span>Held in store stock for 30 mins. Pay at counter upon collection.</span>
                     </p>
                   </div>
                 </>

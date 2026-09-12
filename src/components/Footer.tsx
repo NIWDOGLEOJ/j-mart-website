@@ -1,6 +1,7 @@
 import React from 'react';
-import { Phone, MessageCircle, MapPin, RefreshCw, Heart } from 'lucide-react';
+import { Phone, MessageCircle, MapPin, RefreshCw } from 'lucide-react';
 import { getStoreStatusText, STORE_CONFIG } from '../config/storeConfig';
+import { JMartLogo } from './JMartLogo';
 
 interface FooterProps {
   onOpenStoreInfo: () => void;
@@ -14,30 +15,28 @@ export const Footer: React.FC<FooterProps> = ({
   isRefreshing,
 }) => {
   return (
-    <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 pt-12 pb-8 px-4 sm:px-6">
+    <footer className="bg-[var(--panel)] text-[var(--ink)] border-t border-[var(--border)] pt-12 pb-8 px-4 sm:px-6 transition-colors">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-800">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-[var(--rule)]">
           {/* Col 1: Store Branding */}
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-xs shrink-0">
-                <img src="/logo-mark.png" alt={STORE_CONFIG.name} className="w-full h-full object-contain" />
-              </div>
-              <span className="text-xl font-black text-white tracking-tight">{STORE_CONFIG.name}</span>
+          <div className="md:col-span-2 space-y-3">
+            <div className="flex items-center gap-2.5">
+              <JMartLogo variant="full" subtitle="SUPERMARKET & RETAIL" />
             </div>
-            <p className="text-xs text-slate-400 max-w-sm leading-relaxed mb-4">
+            <p className="text-xs text-[var(--ink3)] max-w-sm leading-relaxed">
               {STORE_CONFIG.description}
             </p>
-            <div className="inline-flex items-center gap-2 bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs text-slate-300">
+            <div className="inline-flex items-center gap-2 bg-[var(--sub)] border border-[var(--border2)] px-3 py-1.5 rounded-lg text-xs text-[var(--ink2)]">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--ok)] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--ok)]" />
               </span>
-              <span>Inventory synchronized with store shelves</span>
+              <span>Directly synchronized with cashier tills</span>
               <button
+                type="button"
                 onClick={onRefreshCatalog}
                 disabled={isRefreshing}
-                className="ml-2 text-emerald-400 hover:text-emerald-300 p-1 rounded-md hover:bg-slate-700 transition-colors cursor-pointer"
+                className="ml-2 text-[var(--accent)] hover:text-[var(--accent-hi)] p-1 rounded hover:bg-[var(--rule2)] transition-colors cursor-pointer"
                 title="Refresh stock status"
               >
                 <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -47,19 +46,19 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Col 2: Store Timings */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 mb-3">
-              Opening Timings
-            </h4>
-            <ul className="space-y-1.5 text-xs text-slate-400">
+            <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)] mb-3">
+              Store Timings
+            </h3>
+            <ul className="space-y-1.5 text-xs text-[var(--ink3)] font-mono">
               <li>
-                <span className="text-slate-300 font-medium">Mon – Fri:</span>{' '}
-                {STORE_CONFIG.openingHours.weekdays}
+                <span className="text-[var(--ink2)]">Mon – Fri:</span>{' '}
+                <span className="tabular-nums text-[var(--ink)]">{STORE_CONFIG.openingHours.weekdays}</span>
               </li>
               <li>
-                <span className="text-slate-300 font-medium">Sat – Sun:</span>{' '}
-                {STORE_CONFIG.openingHours.weekends}
+                <span className="text-[var(--ink2)]">Sat – Sun:</span>{' '}
+                <span className="tabular-nums text-[var(--ink)]">{STORE_CONFIG.openingHours.weekends}</span>
               </li>
-              <li className="text-emerald-400 font-semibold pt-1">
+              <li className="text-[var(--ok)] font-bold pt-1">
                 {getStoreStatusText()}
               </li>
             </ul>
@@ -67,27 +66,27 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Col 3: Visit Us & Contact */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 mb-3">
+            <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)] mb-3">
               Store Contact
-            </h4>
-            <div className="space-y-2 text-xs text-slate-400">
+            </h3>
+            <div className="space-y-2 text-xs text-[var(--ink3)]">
               <div className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <MapPin className="w-3.5 h-3.5 text-[var(--accent)] shrink-0 mt-0.5" />
                 <span>{STORE_CONFIG.address}, {STORE_CONFIG.cityStateZip}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <a href={`tel:${STORE_CONFIG.phone}`} className="hover:text-white transition-colors">
+                <Phone className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
+                <a href={`tel:${STORE_CONFIG.phone}`} className="hover:text-[var(--ink)] transition-colors font-mono">
                   {STORE_CONFIG.phone}
                 </a>
               </div>
               <div className="flex items-center gap-2">
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <MessageCircle className="w-3.5 h-3.5 text-[var(--ok)] shrink-0" />
                 <a
                   href={`https://wa.me/${STORE_CONFIG.whatsappNumber}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-[var(--ink)] transition-colors"
                 >
                   WhatsApp Helpdesk
                 </a>
@@ -97,18 +96,22 @@ export const Footer: React.FC<FooterProps> = ({
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div>
-            © {new Date().getFullYear()} {STORE_CONFIG.name}. All rights reserved.
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--ink4)]">
+          <div className="font-mono text-[11px]">
+            © {new Date().getFullYear()} {STORE_CONFIG.name} · Supermarket & Retail · All Rights Reserved
           </div>
-          <div className="flex items-center gap-4">
-            <button onClick={onOpenStoreInfo} className="hover:text-slate-300 transition-colors cursor-pointer">
-              Store Details
+          <div className="font-mono text-[10px] flex items-center gap-3">
+            <span>GSTIN: 33AAAAA0000A1Z5</span>
+            <span>·</span>
+            <span>HSN Compliant</span>
+            <span>·</span>
+            <button
+              type="button"
+              onClick={onOpenStoreInfo}
+              className="text-[var(--ink3)] hover:text-[var(--ink)] underline cursor-pointer"
+            >
+              Counter Info
             </button>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              Built for retail with <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
-            </span>
           </div>
         </div>
       </div>

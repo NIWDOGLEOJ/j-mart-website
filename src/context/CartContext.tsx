@@ -28,6 +28,7 @@ export interface ActiveReservation {
   items: ActiveReservationItem[];
   customerName: string;
   customerPhone?: string;
+  createdAt?: string;
 }
 
 export const normalizeReservation = (raw: any): ActiveReservation | null => {
@@ -41,6 +42,7 @@ export const normalizeReservation = (raw: any): ActiveReservation | null => {
     const quantity = Math.max(1, Number(item.quantity || 1));
     const uom = String(item.product?.uom || item.uom || 'PCS');
     const imageUrl = item.product?.imageUrl || item.imageUrl || '';
+    const gstRate = Number(item.product?.gstRate ?? item.gstRate ?? 5);
 
     return {
       id,
@@ -58,6 +60,7 @@ export const normalizeReservation = (raw: any): ActiveReservation | null => {
         imageUrl,
         stock: item.product?.stock ?? 10,
         category: item.product?.category || 'Grocery',
+        gstRate,
       }
     };
   });
@@ -72,6 +75,7 @@ export const normalizeReservation = (raw: any): ActiveReservation | null => {
     items,
     customerName: String(raw.customerName || ''),
     customerPhone: raw.customerPhone ? String(raw.customerPhone) : undefined,
+    createdAt: raw.createdAt ? String(raw.createdAt) : undefined,
   };
 };
 

@@ -8,7 +8,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#064e3b" />
+    <meta name="theme-color" content="#101110" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="J MART" />
@@ -25,12 +25,38 @@
     <meta name="twitter:title" content="J MART — Live Store Catalog" />
     <meta name="twitter:description" content="Check live stock and reserve daily essentials for quick pickup at J MART Ramapuram." />
     <meta name="twitter:image" content="/og-image.png" />
-    <!-- Modern Google Font: Plus Jakarta Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Google Fonts: Public Sans (UI) & IBM Plex Mono (Figures, Barcodes & Eyebrows) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300..800;1,300..800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" />
+
+    <!-- Blocking theme resolution to prevent flash -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('nexusflow-theme') || localStorage.getItem('theme');
+          var theme = 'light';
+          if (saved === 'dark' || (saved === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            theme = 'dark';
+          } else if (saved === 'light') {
+            theme = 'light';
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+          } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+          }
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', theme === 'dark' ? '#101110' : '#f2f0ea');
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-slate-50 text-slate-800 antialiased font-['Plus_Jakarta_Sans',sans-serif]">
+  <body class="dc-ground min-h-screen text-[var(--ink)] antialiased font-sans">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

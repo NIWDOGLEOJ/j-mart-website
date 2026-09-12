@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { CatalogViewMode, Product, ProductFilters } from './types/product';
 import { INVENTORY_UPDATED_EVENT, InventoryService } from './services/inventoryService';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { Navbar } from './components/Navbar';
@@ -54,17 +55,17 @@ function MainAppContent() {
   }, [viewMode]);
 
   const inventorySourceLabel = {
-    'live-api': 'Connected to live store inventory',
-    'exported-feed': 'Showing the latest exported store catalog',
-    cached: 'Live connection unavailable · showing last saved catalog',
-    'bundled-fallback': 'Store feed unavailable · showing starter catalog',
-  }[inventorySource] || 'Using latest available catalog';
+    'live-api': 'Synchronized with live till inventory',
+    'exported-feed': 'Displaying latest store catalogue',
+    cached: 'Local cache · offline backup available',
+    'bundled-fallback': 'Starter catalogue · reconnecting to store tills…',
+  }[inventorySource] || 'Displaying store catalogue';
 
   const inventorySourceDot = inventorySource === 'live-api'
-    ? 'bg-emerald-500'
+    ? 'bg-[var(--ok)]'
     : inventorySource === 'cached' || inventorySource === 'bundled-fallback'
-      ? 'bg-amber-500'
-      : 'bg-sky-500';
+      ? 'bg-[var(--warn)]'
+      : 'bg-[var(--accent)]';
 
   const inventorySourceDetail = inventorySource === 'cached' && inventorySavedAt
     ? ` · saved ${inventorySavedAt.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}`
@@ -97,8 +98,7 @@ function MainAppContent() {
     loadProducts();
   }, [loadProducts]);
 
-  // Re-check stock after a customer returns to an open tab or switches back
-  // to the browser window after using WhatsApp or another app.
+  // Re-check stock after a customer returns to an open tab
   useEffect(() => {
     const refreshWhenVisible = () => {
       if (document.visibilityState === 'visible') loadProducts(true);
@@ -143,7 +143,7 @@ function MainAppContent() {
 
     if (websocketUrl) connectWs();
 
-    // Fallback periodic refresh every 15s to keep stock fresh
+    // Fallback periodic refresh every 15s
     const pollInterval = setInterval(() => {
       loadProducts(true);
     }, 15000);
@@ -192,7 +192,7 @@ function MainAppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen dc-ground flex flex-col text-[var(--ink)] font-sans">
       {/* Navigation Bar */}
       <Navbar
         searchQuery={filters.search}
@@ -236,13 +236,13 @@ function MainAppContent() {
         {/* Catalog Grid */}
         <section id="catalog" aria-label="Available Products" className="scroll-mt-28">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1 text-xs">
-            <p className="text-slate-500" role="status" aria-live="polite">
+            <p className="font-mono text-[11px] text-[var(--ink3)] tabular-nums" role="status" aria-live="polite">
               {lastUpdated
                 ? `Catalog updated ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                : 'Loading the latest catalog…'}
+                : 'Loading latest store inventory…'}
             </p>
             <div className="inline-flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 font-semibold text-slate-600">
+              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-[var(--ink2)]">
                 <span className={`h-1.5 w-1.5 rounded-full ${inventorySourceDot}`} />
                 {inventorySourceLabel}{inventorySourceDetail}
               </span>
@@ -251,50 +251,52 @@ function MainAppContent() {
                   type="button"
                   onClick={() => loadProducts(true)}
                   disabled={refreshing}
-                  className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-900 disabled:opacity-50 font-bold cursor-pointer"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--accent)] hover:underline disabled:opacity-50 cursor-pointer font-bold"
                 >
                   <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
-                  Try live refresh
+                  <span>Check Live</span>
                 </button>
               )}
             </div>
           </div>
+
           {loading ? (
-            // Loading skeletons
+            // Loading skeletons using instrument panel cards
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3 animate-pulse"
+                  className="bg-[var(--panel)] rounded-xl border border-[var(--border)] p-4 space-y-3 animate-pulse"
                 >
-                  <div className="w-full h-44 bg-slate-200 rounded-xl" />
-                  <div className="h-4 bg-slate-200 rounded-md w-3/4" />
-                  <div className="h-3 bg-slate-200 rounded-md w-1/2" />
-                  <div className="h-8 bg-slate-200 rounded-xl w-full mt-4" />
+                  <div className="w-full h-40 bg-[var(--sub)] rounded-lg" />
+                  <div className="h-3.5 bg-[var(--sub)] rounded w-3/4" />
+                  <div className="h-3 bg-[var(--sub)] rounded w-1/2" />
+                  <div className="h-9 bg-[var(--sub)] rounded-lg w-full mt-4" />
                 </div>
               ))}
             </div>
           ) : filteredProducts.length === 0 ? (
             // Empty search / filter results
-            <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-12 text-center max-w-md mx-auto my-8">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400 mb-4">
-                <PackageSearch className="w-8 h-8" />
+            <div className="bg-[var(--panel)] rounded-xl border border-dashed border-[var(--border2)] p-12 text-center max-w-md mx-auto my-8">
+              <div className="w-14 h-14 rounded-xl bg-[var(--sub)] border border-[var(--border)] flex items-center justify-center mx-auto text-[var(--ink3)] mb-4">
+                <PackageSearch className="w-7 h-7 stroke-[1.5]" />
               </div>
-              <h3 className="text-base font-bold text-slate-800">
-                No products found
+              <h3 className="text-base font-bold text-[var(--ink)]">
+                No matching products found
               </h3>
-              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-                We couldn’t find any items matching your filters. Try clearing your search or the "In Stock Only" toggle.
+              <p className="text-xs text-[var(--ink3)] mt-1.5 leading-relaxed">
+                We couldn't find items matching your filters. Try clearing your search query or the "In Stock Only" toggle.
               </p>
               <button
+                type="button"
                 onClick={handleResetFilters}
-                className="mt-5 inline-flex items-center gap-1.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer"
+                className="mt-5 inline-flex items-center gap-1.5 bg-[var(--ink)] text-[var(--panel)] hover:opacity-90 text-xs font-bold px-4 py-2 rounded-lg transition-all cursor-pointer"
               >
                 Clear All Filters
               </button>
             </div>
           ) : (
-            // Products Grid
+            // Products Grid / List
             <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6' : 'grid grid-cols-1 gap-3'}>
               {filteredProducts.map((product) => (
                 <ProductCard
@@ -309,15 +311,20 @@ function MainAppContent() {
         </section>
 
         {/* Live Inventory Transparency & Reservation Rules Banner */}
-        <section className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <section className="bg-[var(--panel)] border border-[var(--border)] rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
-            <div className="text-xs text-emerald-950 space-y-0.5">
-              <p className="font-extrabold text-emerald-900">
-                Live Inventory & 30-Minute Reservation Rules
+            <div className="w-8 h-8 rounded-lg bg-[var(--ok-soft)] text-[var(--ok)] border border-[var(--ok-line)] flex items-center justify-center shrink-0 mt-0.5">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div className="text-xs space-y-0.5">
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--ink3)] block">
+                Inventory Policy
+              </span>
+              <p className="font-bold text-[var(--ink)]">
+                Live Till Synchronization & 30-Minute Shelf Hold Guarantee
               </p>
-              <p className="text-emerald-800 leading-relaxed">
-                Stock counts are visible to all visitors. When a Loyalty Member reserves an item, it is held for 30 minutes before auto-unreserving back to our Ramapuram store shelves.
+              <p className="text-[var(--ink2)] leading-relaxed">
+                Stock counts reflect shelf inventory updated every few seconds. When a Loyalty Member reserves an item, it is locked for 30 minutes before auto-releasing back to our Ramapuram store shelves.
               </p>
             </div>
           </div>
@@ -352,11 +359,13 @@ function MainAppContent() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <MainAppContent />
-      </CartProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <MainAppContent />
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

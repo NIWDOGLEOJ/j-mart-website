@@ -77,6 +77,7 @@ export class InventoryService {
                   ? (resolvedImageUrl.startsWith('http') || resolvedImageUrl.startsWith('data:') ? resolvedImageUrl : apiUrl(resolvedImageUrl))
                   : (matched?.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80'),
                 isPopular: matched?.isPopular ?? false,
+                gstRate: Number(raw.gst ?? raw.gstRate ?? raw.gst_rate ?? matched?.gstRate) || 5,
                 tags: matched?.tags || [raw.category?.toLowerCase() || 'general'],
               };
             });
@@ -141,9 +142,9 @@ export class InventoryService {
       return {
         type: 'out_of_stock',
         label: 'Out of Stock',
-        badgeClass: 'text-rose-700 bg-rose-50 border-rose-200',
-        pillBg: 'bg-rose-100 text-rose-800',
-        dotClass: 'bg-rose-500',
+        badgeClass: 'text-[var(--danger)] bg-[var(--danger-soft)] border-[var(--danger-line)]',
+        pillBg: 'bg-[var(--danger-soft)] text-[var(--danger)]',
+        dotClass: 'bg-[var(--danger)]',
         canOrder: false,
       };
     }
@@ -152,9 +153,9 @@ export class InventoryService {
       return {
         type: 'low_stock',
         label: `Low Stock (${stock} left)`,
-        badgeClass: 'text-amber-700 bg-amber-50 border-amber-200',
-        pillBg: 'bg-amber-100 text-amber-800',
-        dotClass: 'bg-amber-500 animate-pulse',
+        badgeClass: 'text-[var(--warn)] bg-[var(--warn-soft)] border-[var(--warn-line)]',
+        pillBg: 'bg-[var(--warn-soft)] text-[var(--warn)]',
+        dotClass: 'bg-[var(--warn)] animate-pulse',
         canOrder: true,
       };
     }
@@ -162,9 +163,9 @@ export class InventoryService {
     return {
       type: 'in_stock',
       label: 'In Stock',
-      badgeClass: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-      pillBg: 'bg-emerald-100 text-emerald-800',
-      dotClass: 'bg-emerald-500',
+      badgeClass: 'text-[var(--ink2)] bg-[var(--rule)] border-[var(--border)]',
+      pillBg: 'bg-[var(--rule)] text-[var(--ink2)]',
+      dotClass: 'bg-[var(--ink3)]',
       canOrder: true,
     };
   }

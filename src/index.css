@@ -2,10 +2,199 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * J MART Design System Tokens
+ * Source of truth mapped directly from Retail POS redesign specification.
+ */
+
+:root,
+:root[data-theme='light'] {
+  --bg: #f2f0ea;
+  --panel: #fffdf8;
+  --sub: #f8f6f1;
+  --rule: #f0eee7;
+  --rule2: #ece8de;
+  --border: #e3dfd4;
+  --border2: #ded9cd;
+
+  --ink: #1a1917;
+  --ink2: #4a463e;
+  --ink3: #6f6b62;
+  --ink4: #8d8779;
+
+  --accent: oklch(0.55 0.14 250);
+  --accent-hi: oklch(0.42 0.14 250);
+  --accent-soft: oklch(0.965 0.018 250);
+  --accent-soft2: oklch(0.94 0.04 250);
+  --accent-line: oklch(0.86 0.06 250);
+
+  --danger: oklch(0.5 0.16 25);
+  --danger-strong: oklch(0.7 0.14 25);
+  --danger-soft: oklch(0.97 0.02 25);
+  --danger-soft2: oklch(0.98 0.012 25);
+  --danger-line: oklch(0.85 0.07 25);
+  --danger-line2: oklch(0.88 0.05 25);
+
+  --warn: oklch(0.46 0.12 70);
+  --warn-hi: oklch(0.44 0.11 60);
+  --warn-soft: oklch(0.96 0.03 70);
+  --warn-line: oklch(0.86 0.07 75);
+
+  --ok: oklch(0.46 0.11 150);
+  --ok-soft: oklch(0.96 0.03 155);
+  --ok-soft2: oklch(0.94 0.04 155);
+  --ok-line: oklch(0.86 0.06 155);
+
+  --grid1: rgba(26, 25, 23, 0.032);
+  --grid2: rgba(26, 25, 23, 0.055);
+  --glow-a: rgba(96, 130, 206, 0.10);
+  --glow-b: rgba(196, 148, 74, 0.07);
+  --paper-shadow: rgba(26, 25, 23, 0.16);
+
+  --primary-foreground: #ffffff;
+  --dc-sans: 'Public Sans', system-ui, -apple-system, sans-serif;
+  --dc-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root[data-theme='dark'],
+.dark {
+  --bg: #101110;
+  --panel: #1b1d1a;
+  --sub: #24261f;
+  --rule: #282a24;
+  --rule2: #2c2f28;
+  --border: #33362e;
+  --border2: #3c3f36;
+
+  --ink: #f0eee6;
+  --ink2: #c6c2b4;
+  --ink3: #969287;
+  --ink4: #7c7870;
+
+  --accent: oklch(0.74 0.13 250);
+  --accent-hi: oklch(0.86 0.09 250);
+  --accent-soft: oklch(0.29 0.055 250);
+  --accent-soft2: oklch(0.31 0.07 250);
+  --accent-line: oklch(0.45 0.10 250);
+
+  --danger: oklch(0.76 0.15 25);
+  --danger-strong: oklch(0.58 0.15 25);
+  --danger-soft: oklch(0.26 0.05 25);
+  --danger-soft2: oklch(0.235 0.035 25);
+  --danger-line: oklch(0.45 0.12 25);
+  --danger-line2: oklch(0.42 0.10 25);
+
+  --warn: oklch(0.80 0.12 80);
+  --warn-hi: oklch(0.84 0.11 75);
+  --warn-soft: oklch(0.26 0.05 75);
+  --warn-line: oklch(0.45 0.09 75);
+
+  --ok: oklch(0.76 0.13 155);
+  --ok-soft: oklch(0.245 0.045 155);
+  --ok-soft2: oklch(0.27 0.055 155);
+  --ok-line: oklch(0.42 0.09 155);
+
+  --grid1: rgba(255, 255, 255, 0.028);
+  --grid2: rgba(255, 255, 255, 0.055);
+  --glow-a: rgba(126, 158, 224, 0.11);
+  --glow-b: rgba(226, 182, 120, 0.06);
+  --paper-shadow: rgba(0, 0, 0, 0.55);
+
+  --primary-foreground: #101110;
+  --dc-sans: 'Public Sans', system-ui, -apple-system, sans-serif;
+  --dc-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
   }
+
+  html,
+  body,
+  .dc-ground {
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(1100px 640px at 80% -12%, var(--glow-a), transparent 62%),
+      radial-gradient(880px 560px at 4% 108%, var(--glow-b), transparent 62%),
+      repeating-linear-gradient(0deg, var(--grid2) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, var(--grid2) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(0deg, var(--grid1) 0 1px, transparent 1px 5px),
+      repeating-linear-gradient(90deg, var(--grid1) 0 1px, transparent 1px 5px);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--dc-sans);
+  }
+
+  /* Figure and numeric alignment */
+  table,
+  th,
+  td,
+  input[type='number'],
+  .font-mono,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* 10px mono, 700, uppercase, wide tracking eyebrow */
+.dc-eyebrow {
+  font-family: var(--dc-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink3);
+}
+
+.dc-mono {
+  font-family: var(--dc-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Button Material Tokens */
+.glass-btn {
+  background: var(--sub);
+  border: 1px solid var(--border2);
+  color: var(--ink);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: background-color 140ms ease-out, border-color 140ms ease-out, opacity 140ms ease-out;
+}
+
+.glass-btn:hover:not(:disabled) {
+  background: var(--rule2);
+  border-color: var(--border2);
+}
+
+.glass-btn-accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--primary-foreground);
+}
+
+.glass-btn-accent:hover:not(:disabled) {
+  background: var(--accent-hi);
+  border-color: var(--accent-hi);
+}
+
+.glass-btn-selected {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--ink);
+}
+
+.glass-btn-danger {
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+  color: var(--danger);
+}
+
+.glass-btn-warning {
+  background: var(--warn-soft);
+  border-color: var(--warn-line);
+  color: var(--warn);
 }
 
 /* Custom subtle scrollbar */
@@ -15,14 +204,24 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--sub);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--border2);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
 }
